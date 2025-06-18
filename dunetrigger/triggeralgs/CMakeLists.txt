@@ -19,6 +19,7 @@ basic_plugin(triggeralgs module
   src/TriggerActivityMakerMichelElectron.cpp
   src/TriggerActivityMakerPlaneCoincidence.cpp
   src/TriggerActivityMakerPrescale.cpp
+  src/TriggerActivityMakerSNCluster.cpp
   src/TriggerActivityMakerSupernova.cpp
   src/TriggerCandidateMakerADCSimpleWindow.cpp
   src/TriggerCandidateMakerBundleN.cpp
@@ -29,6 +30,7 @@ basic_plugin(triggeralgs module
   src/TriggerCandidateMakerMichelElectron.cpp
   src/TriggerCandidateMakerPlaneCoincidence.cpp
   src/TriggerCandidateMakerPrescale.cpp
+  src/TriggerCandidateMakerSNCluster.cpp
   src/TriggerCandidateMakerSupernova.cpp
   src/TriggerDecisionMakerSupernova.cpp
   src/dbscan/dbscan.cpp
