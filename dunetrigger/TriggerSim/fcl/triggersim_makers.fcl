@@ -38,6 +38,18 @@ ta_algconfig_adjacencyplugin:
 	adj_tolerance: 3        # from triggeralgs default
 }
 
+ta_algconfig_sncluster:
+{
+        window_length: 10
+        adc_threshold: 20000
+	n_of_TPs: 10
+	tot_min: 0
+	tot_max: 99999999
+	channel_span_max: 20
+	n_adjacent_tps_min: 6
+        n_allowed_channel_gaps: 2
+}
+
 # more ta configs...
 
 # drop these?
@@ -59,6 +71,23 @@ tamakerTPC_ADCSimpleWindow:
     mergecollwires: true
     flush: true
 	  prescale: 1
+    print_tp_info: false
+    verbosity: 1
+  }
+
+tamakerTPC_SNCluster:
+  {
+    module_type: TriggerActivityMakerTPC
+    tp_tag: "tpmakerTPC"
+    algorithm: "TriggerActivityMakerSNClusterPlugin" # another basic option is TriggerActivityMakerChannelAdjacencyPlugin
+    algconfig_plane0: @local::ta_algconfig_sncluster # induction 1
+    algconfig_plane1: @local::ta_algconfig_sncluster # induction 2
+    algconfig_plane2: @local::ta_algconfig_sncluster # collection facing one side (readout differentiates)
+    algconfig_plane3: @local::ta_algconfig_sncluster # collection facing the other side (readout differentiates)
+    nmodules: @local::nmodules_protodunehd # just a default
+    mergecollwires: true
+    flush: true
+    prescale: 1
     print_tp_info: false
     verbosity: 1
   }
@@ -92,6 +121,16 @@ tcmakerTPC_ADCSimpleWindow:
     module_type: TriggerCandidateMakerTPC
     ta_tag: "tamakerTPC"
     algorithm: "TriggerCandidateMakerADCSimpleWindowPlugin"
+    algconfig: @local::tcconfig_simplewindow
+    multiplicity: 1 # keep?
+    verbosity: 1
+  }
+
+tcmakerTPC_SNCluster:
+  {
+    module_type: TriggerCandidateMakerTPC
+    ta_tag: "tamakerTPC"
+    algorithm: "TriggerCandidateMakerSNClusterPlugin"
     algconfig: @local::tcconfig_simplewindow
     multiplicity: 1 # keep?
     verbosity: 1

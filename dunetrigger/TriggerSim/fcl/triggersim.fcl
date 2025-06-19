@@ -48,4 +48,19 @@ physics_triggersim_simpleThr_simpleWin_simpleWin: {
     end_paths: [ stream1 ]
 }
 
+### SN Cluster
+producers_triggersim_simpleThr_SNCluster_SNCluster: {
+    tpmakerTPC: @local::tpmakerTPC_ADCSimpleThreshold
+    tamakerTPC: @local::tamakerTPC_SNCluster
+    tcmakerTPC: @local::tcmakerTPC_SNCluster
+}
+
+physics_triggersim_simpleThr_SNCluster_SNCluster: {
+    producers: @local::producers_triggersim_simpleThr_SNCluster_SNCluster
+    stream1: [ out1 ]
+    makers: [ tpmakerTPC, tamakerTPC, tcmakerTPC ]
+    trigger_paths: [ makers ]
+    end_paths: [ stream1 ]
+}
+
 END_PROLOG

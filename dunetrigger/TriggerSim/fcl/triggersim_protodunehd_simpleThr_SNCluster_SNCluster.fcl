@@ -1,0 +1,21 @@
+# triggersim_protodunehd_simpleThr_simpleWin_example.fcl
+
+#include "triggersim.fcl"
+
+#include "services_refactored_pdune.fcl"
+# this is not a prolog, it has to go just before the actual config
+#include "protodune_tools_dune.fcl"
+
+process_name: TriggersimProtoduneHDSimpleThrSNClusterSNCluster
+
+services:{
+    @table::services_triggersim
+    @table::protodunehd_reco_services
+}
+
+source:     @local::source_triggersim
+
+outputs:    @local::outputs_triggersim
+
+physics:  @local::physics_triggersim_simpleThr_SNCluster_SNCluster
+producers.tamakerTPC.nmodules: @local::nmodules_protodunehd
