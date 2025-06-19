@@ -114,13 +114,11 @@ TriggerActivityMakerSNCluster::configure(const nlohmann::json &config)
     std::cout << "[TAM:SNCluster] tot_max:" << m_tot_max << std::endl;
     std::cout << "[TAM:SNCluster] m_channel_span_max:" << m_channel_span_max << std::endl;
     std::cout << "[TAM:SNCluster] m_n_adjacent_tps_min:" << m_n_adjacent_tps_min << std::endl;
-    std::cout << "[TAM:SNCluster] m_n_allowed_channel_gaps:" << m_n_allowed_channel_gaps << std::endl;
+    std::cout << "[TAM:SNCluster] m_n_allowed_channel_gaps:" << m_n_allowed_channel_gaps << std::endl << std::endl;
   }
   else{
     std::cout << "[TAM:SNCluster] The DEFAULT values of window_length and adc_threshold are being used." << std::endl;
   }
-  std::cout << "[TAM:SNCluster] If the number of trigger primitives with times within a "
-                         << m_window_length << " tick time window is above " << m_n_TPs_threshold << " (count), a trigger will be issued." << std::endl;
 }
 
 TriggerActivity
@@ -148,35 +146,53 @@ TriggerActivityMakerSNCluster::construct_ta() const
   return ta;
 }
 
-bool 
+bool
 TriggerActivityMakerSNCluster::adjacency_check(const Window& window) const
 {
   if (window.tp_list.size() < m_n_adjacent_tps_min) return false;
 
-  std::unordered_set<uint32_t> unique_channels;
-  for (const auto& tp : window.tp_list) {
-    unique_channels.insert(tp.channel);
-  }
+  // Sort TPs by channel
+  std::vector<TriggerPrimitive> sorted_tps = window.tp_list;
+  std::sort(sorted_tps.begin(), sorted_tps.end(),
+            [](const TriggerPrimitive& a, const TriggerPrimitive& b) {
+              return a.channel < b.channel;
+            });
 
-  std::vector<uint32_t> channels(unique_channels.begin(), unique_channels.end());
-  std::sort(channels.begin(), channels.end());
+  for (size_t i = 0; i < sorted_tps.size(); ++i) {
+    std::vector<TriggerPrimitive> cluster;
+    cluster.push_back(sorted_tps[i]);
 
-  size_t left = 0;
-  for (size_t right = 0; right < channels.size(); ++right) {
-    while (channels[right] - channels[left] > m_channel_span_max) {
-      left++;
-    }
-
-    // Count number of TPs and gaps in the window [left, right]
-    size_t count = right - left + 1;
     uint32_t gap_count = 0;
-    for (size_t i = left + 1; i <= right; ++i) {
-      gap_count += channels[i] - channels[i - 1] - 1;
+    uint32_t prev_channel = sorted_tps[i].channel;
+
+    for (size_t j = i + 1; j < sorted_tps.size(); ++j) {
+      uint32_t curr_channel = sorted_tps[j].channel;
+
+      if (curr_channel > prev_channel + 1) {
+        gap_count += (curr_channel - prev_channel - 1);
+        if (gap_count > m_n_allowed_channel_gaps) break;
+      }
+
+      cluster.push_back(sorted_tps[j]);
+      prev_channel = curr_channel;
     }
 
-    if (count >= m_n_adjacent_tps_min && gap_count <= m_n_allowed_channel_gaps) {
-      return true;
+    if (cluster.size() >= m_n_adjacent_tps_min) {
+      // Check span
+      uint32_t span = cluster.back().channel - cluster.front().channel;
+      if (span <= m_channel_span_max) {
+        // Check ADC sum
+        uint32_t adc_sum = 0;
+        for (const auto& tp : cluster) {
+          adc_sum += tp.adc_integral;
+        }
+        if (adc_sum >= m_adc_threshold) {
+          return true;
+        }
+      }
     }
+
+    // If the current cluster failed, try the next start index (i+1)
   }
 
   return false;
